@@ -18,6 +18,9 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const reviewsCollection = client.db("clientRivews").collection("rivews");
+    const clientRealRivews = client
+      .db("clientRivews")
+      .collection("clientRealRivews");
     app.get("/services", async (req, res) => {
       const query = {};
       const result = reviewsCollection.find(query);
@@ -39,6 +42,13 @@ async function run() {
       console.log(singleService);
 
       res.send(singleService);
+    });
+
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const result = reviewsCollection.find(query);
+      const rivews = await result.toArray();
+      res.send(rivews);
     });
   } catch {}
 }
