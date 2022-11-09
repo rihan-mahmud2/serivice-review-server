@@ -34,21 +34,33 @@ async function run() {
       const services = await result.toArray();
       res.send(services);
     });
+
+    app.post("/allservices", async (req, res) => {
+      const service = req.body;
+      const result = await reviewsCollection.insertOne(service);
+      console.log(result);
+      res.send(result);
+    });
     app.get("/allservices/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+
       const query = { _id: ObjectId(id) };
       const singleService = await reviewsCollection.findOne(query);
-      console.log(singleService);
 
       res.send(singleService);
     });
 
-    app.get("/reviews", async (req, res) => {
-      const query = {};
-      const result = reviewsCollection.find(query);
+    app.get("/reviews/:index", async (req, res) => {
+      const name = parseInt(req.params.index);
+      console.log(name);
+      const query = { index: name };
+      const result = clientRealRivews.find(query);
       const rivews = await result.toArray();
-      res.send(rivews);
+    });
+    app.post("/rivews", async (req, res) => {
+      const rivews = req.body;
+      const result = await clientRealRivews.insertOne(rivews);
+      res.send(result);
     });
   } catch {}
 }
