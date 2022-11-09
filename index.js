@@ -16,6 +16,22 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+const verifyJwt = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(403).send({ message: "unauthorized access" });
+  }
+
+  const token = authHeader.split(" ");
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      res.status(403).send({ message: "Unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
 async function run() {
   try {
     const reviewsCollection = client.db("clientRivews").collection("rivews");
@@ -27,7 +43,12 @@ async function run() {
 
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+
+      res.send({ token });
     });
 
     app.get("/services", async (req, res) => {
@@ -47,7 +68,7 @@ async function run() {
     app.post("/allservices", async (req, res) => {
       const service = req.body;
       const result = await reviewsCollection.insertOne(service);
-      console.log(result);
+
       res.send(result);
     });
     app.get("/allservices/:id", async (req, res) => {
@@ -73,13 +94,13 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/rivews", async (req, res) => {
+    app.get("/rivews", verifyJwt, async (req, res) => {
       const userEmail = req.query.email;
-      console.log(userEmail);
+      console.log(req.headers.authorization);
       const query = { email: userEmail };
       const result = clientRealRivews.find(query);
       const rivews = await result.toArray();
-      console.log(rivews);
+
       res.send(rivews);
     });
 
