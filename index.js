@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
@@ -21,6 +22,14 @@ async function run() {
     const clientRealRivews = client
       .db("clientRivews")
       .collection("clientRealRivews");
+
+    // implementing jwt token
+
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+    });
+
     app.get("/services", async (req, res) => {
       const query = {};
       const result = reviewsCollection.find(query);
@@ -56,6 +65,7 @@ async function run() {
       const query = { index: name };
       const result = clientRealRivews.find(query);
       const rivews = await result.toArray();
+      res.send(rivews);
     });
     app.post("/rivews", async (req, res) => {
       const rivews = req.body;
@@ -65,10 +75,19 @@ async function run() {
 
     app.get("/rivews", async (req, res) => {
       const userEmail = req.query.email;
+      console.log(userEmail);
       const query = { email: userEmail };
       const result = clientRealRivews.find(query);
-      const rivews = result.toArray();
+      const rivews = await result.toArray();
+      console.log(rivews);
       res.send(rivews);
+    });
+
+    app.delete("/rivews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const resutl = await clientRealRivews.deleteOne(query);
+      res.send(resutl);
     });
   } catch {}
 }
