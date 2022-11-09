@@ -62,6 +62,14 @@ async function run() {
       const result = await clientRealRivews.insertOne(rivews);
       res.send(result);
     });
+
+    app.get("/rivews", async (req, res) => {
+      const userEmail = req.query.email;
+      const query = { email: userEmail };
+      const result = clientRealRivews.find(query);
+      const rivews = result.toArray();
+      res.send(rivews);
+    });
   } catch {}
 }
 
