@@ -22,7 +22,7 @@ const verifyJwt = (req, res, next) => {
     return res.status(403).send({ message: "unauthorized access" });
   }
 
-  const token = authHeader.split(" ");
+  const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
       res.status(403).send({ message: "Unauthorized access" });
@@ -45,7 +45,7 @@ async function run() {
       const user = req.body;
 
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "10h",
       });
 
       res.send({ token });
@@ -96,7 +96,7 @@ async function run() {
 
     app.get("/rivews", verifyJwt, async (req, res) => {
       const userEmail = req.query.email;
-      console.log(req.headers.authorization);
+
       const query = { email: userEmail };
       const result = clientRealRivews.find(query);
       const rivews = await result.toArray();
@@ -104,10 +104,39 @@ async function run() {
       res.send(rivews);
     });
 
+    app.get("/updaterivews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const rivew = await clientRealRivews.findOne(query);
+
+      res.send(rivew);
+    });
+
+    app.put("/updaterivews/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const rivews = req.body;
+      const option = { upsert: true };
+      const updatedRivews = {
+        $set: {
+          name: rivews.name,
+          email: rivews.email,
+          description: rivews.des,
+        },
+      };
+      const result = await clientRealRivews.updateOne(
+        filter,
+        updatedRivews,
+        option
+      );
+      res.send(result);
+    });
+
     app.delete("/rivews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const resutl = await clientRealRivews.deleteOne(query);
+      console.log(resutl);
       res.send(resutl);
     });
   } catch {}
