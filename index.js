@@ -25,7 +25,7 @@ const verifyJwt = (req, res, next) => {
   const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      res.status(403).send({ message: "Unauthorized access" });
+      return res.status(403).send({ message: "Unauthorized access" });
     }
     req.decoded = decoded;
     next();
@@ -38,6 +38,8 @@ async function run() {
     const clientRealRivews = client
       .db("clientRivews")
       .collection("clientRealRivews");
+
+    //stripe set UP
 
     // implementing jwt token
 
@@ -84,7 +86,8 @@ async function run() {
       const name = parseInt(req.params.index);
       console.log(name);
       const query = { index: name };
-      const result = clientRealRivews.find(query);
+      const sort = { date: -1 };
+      const result = clientRealRivews.find(query).sort(sort);
       const rivews = await result.toArray();
       res.send(rivews);
     });
@@ -94,7 +97,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/rivews", verifyJwt, async (req, res) => {
+    app.get("/rivews", async (req, res) => {
       const userEmail = req.query.email;
 
       const query = { email: userEmail };
