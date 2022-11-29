@@ -82,10 +82,10 @@ async function run() {
       res.send(singleService);
     });
 
-    app.get("/reviews/:index", async (req, res) => {
-      const name = parseInt(req.params.index);
+    app.get("/reviews/:name", async (req, res) => {
+      const name = req.params.name;
       console.log(name);
-      const query = { index: name };
+      const query = { categoryName: name };
       const sort = { date: -1 };
       const result = clientRealRivews.find(query).sort(sort);
       const rivews = await result.toArray();
@@ -97,7 +97,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/rivews", async (req, res) => {
+    app.get("/rivews", verifyJwt, async (req, res) => {
       const userEmail = req.query.email;
 
       const query = { email: userEmail };
@@ -115,7 +115,7 @@ async function run() {
       res.send(rivew);
     });
 
-    app.put("/updaterivews/:id", async (req, res) => {
+    app.put("/updaterivews/:id", verifyJwt, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const rivews = req.body;
